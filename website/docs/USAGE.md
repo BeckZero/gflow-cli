@@ -1800,12 +1800,18 @@ For MCP over HTTP, see `gflow serve` and [MCP.md](MCP.md).
 Sequential JSON-described batch image generation. New in v0.5.0a1.
 
 ```text
-gflow run --config FILE [--output-dir DIR] [--profile NAME] [--continue-on-error|--fail-fast]
+gflow run --config FILE [--output-dir DIR] [--profile NAME] [--project ID] [--continue-on-error|--fail-fast]
 ```
 
 The config is a JSON file with a top-level `prompts` array; each entry
 produces 1–4 images through one `FlowApiClient` session (one Playwright
 browser, one Flow project; prompts run one after another).
+
+By default each run creates a new Flow project titled `gflow-cli run`. Pass
+`--project ID` (or set `"project"` in the config; the CLI wins) to generate every
+row into an existing project instead, as `gflow image t2i --project` does: no
+project is created, and a title already in the local catalog is kept (a project the
+catalog has not seen yet is recorded without one, as with `t2i --project`).
 
 ### Config schema
 
@@ -1842,6 +1848,7 @@ browser, one Flow project; prompts run one after another).
 | `profile` | no | active profile | CLI `--profile` overrides. |
 | `transport` | no | `ui_automation` | Experimental strategies need `GFLOW_CLI_EXPERIMENTAL_TRANSPORTS=1`. |
 | `output_dir` | no | `out/<UTC-timestamp>/` | CLI `--output-dir` overrides. |
+| `project` | no | new `gflow-cli run` project | Existing Flow project id (letters, digits, hyphens) to generate every row into. CLI `--project` overrides. |
 
 ### Error semantics
 
@@ -1880,8 +1887,8 @@ that row's position in `prompts` (0-based).
   was generated but whose download failed still counts as generated: its children run.
 - **Tracking.** Each row is recorded in the local catalog; a referencing row is recorded
   as image-to-image with its parent as the input (`gflow data`).
-- **No resume.** A re-run starts a new project and regenerates every row, parents
-  included.
+- **No resume.** A re-run regenerates every row, parents included, in a new project
+  (or, with `--project`, in that same project).
 - **`batch:N` or a local file.** A media id or `reference_entity` in a row is refused
   (exit 11); for those use `gflow image i2i --ref` or `--reference-entity`.
 - **A parent Flow returned without a caption** cannot be found in the composer's `@`
@@ -1901,7 +1908,8 @@ A row's `ref` can also be a local image: `"ref": "refs/product.png"`.
   project holds one copy.
 - **A failed upload** fails that row with the reason; a later row naming the same file
   tries the upload again.
-- **Not resumable.** A re-run uploads the file again into its new project.
+- **Not resumable.** A re-run uploads the file again, into its new project (or, with
+  `--project`, into that same project).
 - **Measured on flow.google.com** (2026-10-01). When Flow serves the project from labs,
   the file goes through the REST upload instead; that path has not been observed live.
   `GFLOW_CLI_FLOW_HOST=labs.google` on a project Flow serves from flow.google.com is
