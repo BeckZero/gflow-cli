@@ -314,7 +314,8 @@ Options:
   --out PATH                Output directory (see "Output paths" below).
   --project ID              Generate in this EXISTING Flow project instead of a
                             scratch project. Required to reference locked
-                            entities/assets in that project. Single-prompt only.
+                            entities/assets in that project. With several
+                            prompts, every prompt runs in it.
   -o, --output PATH         Explicit destination file path for the generated asset
                             (e.g., `./out/bird.png`). Overrides automatic filename.
   --reference-entity ID     Flow CHARACTER entity id to reference for character
@@ -498,7 +499,8 @@ project that owns them** via `--project <id>` (this also means no throwaway
 scratch project is created). The CLI attaches each entity through the Flow editor's
 resource picker; the submit then carries `referenceEntities`, exactly like the
 video R2V path. Entities count toward the same per-model reference cap as `--ref`
-images. `--reference-entity` / `--project` / `--output` are **single-prompt only**.
+images. `--reference-entity` / `--output` are **single-prompt only**; `--project` also
+works with several prompts, which then all run in that project.
 
 For a *pure* character reference (no starting image) use `t2i` — `i2i` still
 requires at least one `--ref`.

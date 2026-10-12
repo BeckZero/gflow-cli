@@ -148,7 +148,8 @@ def _project_and_entity_options(*, single_prompt: bool) -> Callable[[_CmdFn], _C
     """Shared `--project` / `--reference-entity` / `--reference-entity-name` options.
 
     Applied to both `t2i` and `i2i` so the (identical) option definitions live in one
-    place. ``single_prompt`` appends the single-prompt-only note to t2i's help.
+    place. ``single_prompt`` appends the single-prompt-only note to t2i's
+    ``--reference-entity`` help.
     """
     note = " Single-prompt only." if single_prompt else ""
 
@@ -184,7 +185,7 @@ def _project_and_entity_options(*, single_prompt: bool) -> Callable[[_CmdFn], _C
             help=(
                 "Generate in this existing Flow project id instead of creating a scratch "
                 "project. Required to reference locked entities/assets that live in a "
-                "specific project." + note
+                "specific project."
             ),
         )(func)
 
@@ -957,12 +958,10 @@ def t2i(  # NOSONAR
         msg = "--instruction is single-prompt only; remove the extra prompts."
         raise click.UsageError(msg)
 
-    if is_multi_prompt and (project_id is not None or reference_entities):
-        # The multi-prompt/batch path creates one shared project internally; a
-        # single explicit --project / --reference-entity across many prompts isn't
-        # wired. Loop t2i one prompt at a time if you need every frame in the same
-        # project with the same characters.
-        msg = "--project / --reference-entity are single-prompt only; remove the extra prompts."
+    if is_multi_prompt and reference_entities:
+        # The batch runner does not attach entities. Loop t2i one prompt at a time
+        # (with --project) if every frame needs the same characters.
+        msg = "--reference-entity is single-prompt only; remove the extra prompts."
         raise click.UsageError(msg)
 
     if is_multi_prompt and as_json:
@@ -1042,7 +1041,7 @@ def t2i(  # NOSONAR
     if tool_specs:
         batch_prompts = _apply_tools_to_batch_prompts(batch_prompts, tool_specs)
     _execute_t2i_batch(
-        batch_prompts, count, continue_on_error, profile, out, transport, jitter_spec
+        batch_prompts, count, continue_on_error, profile, out, transport, jitter_spec, project_id
     )
 
 
@@ -1116,8 +1115,12 @@ def _execute_t2i_batch(
     out: Path | None,
     transport: str | None,
     jitter_spec: str | None = None,
+    project_id: str | None = None,
 ) -> None:
-    """Run a multi-prompt t2i batch and print the summary table."""
+    """Run a multi-prompt t2i batch and print the summary table.
+
+    ``project_id`` runs every prompt in that existing project instead of a new one.
+    """
     jitter_range = resolve_jitter_range(jitter_spec)
     profile_name = _resolve_profile(profile)
     provider_dir = _make_provider_dir(profile_name)
@@ -1149,6 +1152,7 @@ def _execute_t2i_batch(
                 _profile_name=profile_name,
                 _recorder=recorder,
                 _command="image t2i",
+                project_id=project_id,
             ),
         )
     finally:
