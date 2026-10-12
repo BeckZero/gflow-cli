@@ -16,6 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   runs every row in that project and creates none, and a title already in the local
   catalog is kept, as with `t2i --project`. `gflow run` has no MCP twin yet, so
   there is no MCP option to mirror.
+- **`gflow image t2i` takes `--project` with several prompts.** A multi-prompt run
+  (several positional prompts, `--prompts-file` or `--stdin`) used to reject
+  `--project` as single-prompt only; it now runs every prompt in that project and
+  creates none, on the same path as `gflow run --project`. `--reference-entity` stays
+  single-prompt only. The MCP image tool takes one prompt, so there is nothing to
+  mirror.
 
 ## [0.83.2] — 2026-10-11
 
