@@ -148,10 +148,12 @@ def _project_and_entity_options(*, single_prompt: bool) -> Callable[[_CmdFn], _C
     """Shared `--project` / `--reference-entity` / `--reference-entity-name` options.
 
     Applied to both `t2i` and `i2i` so the (identical) option definitions live in one
-    place. ``single_prompt`` appends the single-prompt-only note to t2i's
-    ``--reference-entity`` help.
+    place. ``single_prompt`` marks t2i, which takes several prompts: its
+    ``--reference-entity`` help gets the single-prompt-only note and its ``--project``
+    help says a multi-prompt run uses that project.
     """
     note = " Single-prompt only." if single_prompt else ""
+    project_note = " With several prompts, every prompt runs in it." if single_prompt else ""
 
     def decorator(func: _CmdFn) -> _CmdFn:
         func = click.option(
@@ -185,7 +187,7 @@ def _project_and_entity_options(*, single_prompt: bool) -> Callable[[_CmdFn], _C
             help=(
                 "Generate in this existing Flow project id instead of creating a scratch "
                 "project. Required to reference locked entities/assets that live in a "
-                "specific project."
+                "specific project." + project_note
             ),
         )(func)
 
