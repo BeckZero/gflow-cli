@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`gflow run --project ID` generates a batch into an existing Flow project.** Every
+  run used to create a new project titled `gflow-cli run`, so a user who keeps their
+  images in one project had to fall back to one `gflow image t2i --project` call per
+  prompt. `--project` (or a top-level `"project"` key in the config; the CLI wins) now
+  runs every row in that project and creates none, and a title already in the local
+  catalog is kept, as with `t2i --project`. `gflow run` has no MCP twin yet, so
+  there is no MCP option to mirror.
+
 ## [0.83.2] — 2026-10-11
 
 ### Fixed

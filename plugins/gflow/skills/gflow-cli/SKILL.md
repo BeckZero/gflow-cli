@@ -71,8 +71,9 @@ gflow image t2i "<prompt>" [--model {nano2|nano2-lite|nano-pro|image4}] \
 gflow image i2i "<prompt>" --ref PATH_OR_UUID [--ref ...] [...same as t2i]
 gflow image upscale <mediaId> --scale {2k|4k} [--project ID] [--out DIR]  # 4K is Ultra-only
 gflow image batch <manifest.tsv|manifest.json> [-n 1..4] [--aspect ...] [--out DIR]  # shared project, up to 5 prompts; refuses any row ref (exit 2)
-gflow run --config <batch.json>                           # JSON image batch; a row's "ref" may be "batch:N" (an earlier
-                                                          # row's image, in place, no upload) or a local file (uploaded once)
+gflow run --config <batch.json> [--project ID]            # JSON image batch; a row's "ref" may be "batch:N" (an earlier
+                                                          # row's image, in place, no upload) or a local file (uploaded once);
+                                                          # --project (or "project" in the config) reuses an existing project
 # For accounts Flow serves flow.google.com (#639), t2i, i2i, and upscale are ported (a project is
 # created when --project is omitted, #864): i2i accepts local --ref files only, all
 # five aspects. UUIDs, @Name/entity references, Imagen 4 (image4), and image batch
