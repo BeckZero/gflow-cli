@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`gflow image t2i --project-name` titles a multi-prompt run's project (#975).** With
+  several prompts (positional, `--prompts-file` or `--stdin`) the option was accepted and
+  then dropped: the shared project was always titled `gflow-cli t2i`. It now gets the name
+  you pass, as a single-prompt run does; with `--project` no project is created, so the
+  name is not used. The MCP image tool takes one prompt, so there is nothing to mirror.
+
 ## [0.84.0] — 2026-10-12
 
 ### Added
