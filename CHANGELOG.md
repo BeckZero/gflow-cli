@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.84.0] — 2026-10-12
+
+### Added
+
+- **`gflow run --project ID` generates a batch into an existing Flow project (#970).** Every
+  run used to create a new project titled `gflow-cli run`, so a user who keeps their
+  images in one project had to fall back to one `gflow image t2i --project` call per
+  prompt. `--project` (or a top-level `"project"` key in the config; the CLI wins) now
+  runs every row in that project and creates none, and a title already in the local
+  catalog is kept, as with `t2i --project`. `gflow run` has no MCP twin yet, so
+  there is no MCP option to mirror.
+- **`gflow image t2i` takes `--project` with several prompts (#971).** A multi-prompt run
+  (several positional prompts, `--prompts-file` or `--stdin`) used to reject
+  `--project` as single-prompt only; it now runs every prompt in that project and
+  creates none, on the same path as `gflow run --project`. `--reference-entity` stays
+  single-prompt only. The MCP image tool takes one prompt, so there is nothing to
+  mirror.
+
 ## [0.83.2] — 2026-10-11
 
 ### Fixed
@@ -6010,7 +6028,8 @@ shell-script template that branches on these codes.
 
 First skeleton. Not functional end-to-end yet.
 
-[Unreleased]: https://github.com/ffroliva/gflow-cli/compare/v0.83.2...HEAD
+[Unreleased]: https://github.com/ffroliva/gflow-cli/compare/v0.84.0...HEAD
+[0.84.0]: https://github.com/ffroliva/gflow-cli/compare/v0.83.2...v0.84.0
 [0.83.2]: https://github.com/ffroliva/gflow-cli/compare/v0.83.1...v0.83.2
 [0.83.1]: https://github.com/ffroliva/gflow-cli/compare/v0.83.0...v0.83.1
 [0.83.0]: https://github.com/ffroliva/gflow-cli/compare/v0.82.1...v0.83.0

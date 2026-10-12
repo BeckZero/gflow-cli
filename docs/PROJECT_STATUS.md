@@ -4,6 +4,22 @@
 
 ## Current release
 
+**v0.84.0 — alpha.** Batch image runs can target an existing Flow project.
+
+**`gflow run --project ID` (#970).** Every run used to create a new project titled
+`gflow-cli run`. `--project` (or a top-level `"project"` key in the config; the CLI wins)
+now runs every row in that existing project and creates none, and the project keeps its
+title in the local catalog. Contributed by @BeckZero.
+
+**`gflow image t2i` takes `--project` with several prompts (#971).** A multi-prompt run
+used to reject `--project` as single-prompt only; it now runs every prompt in that project
+on the same path. `--reference-entity` stays single-prompt only.
+
+Neither command has an MCP twin for this: `gflow run` is not ported yet, and the MCP image
+tool takes one prompt. Full ledger: [LIVE_VERIFICATION_v0.84.0](LIVE_VERIFICATION_v0.84.0.md).
+
+<details><summary>v0.83.2 — non-English UIs, image upscale, and auth status without Chrome</summary>
+
 **v0.83.2 — alpha.** Three fixes on flow.google.com: non-English UIs, image upscale, and
 `auth status` on hosts without Chrome.
 
@@ -23,6 +39,8 @@ Google Chrome.** The probe opens the profile with the same channel generation us
 **Not verified here:** a host without Google Chrome; video upscale, which shares the fixed
 helper but whose live run hit a disabled 1080p option (#967); accounts served labs. Full ledger:
 [LIVE_VERIFICATION_v0.83.2](LIVE_VERIFICATION_v0.83.2.md).
+
+</details>
 
 <details><summary>v0.83.1 — the default image model works on flow.google.com again</summary>
 
@@ -448,6 +466,7 @@ migrated accounts (#795), and the agent-only composer driver (#799, #824 open).
 
 | Milestone | Status |
 |---|---|
+| `gflow run --project` (#970) and multi-prompt `gflow image t2i --project` (#971) generate into an existing Flow project and create none | ✅ done (v0.84.0) |
 | `--duration` binds in a non-English Flow UI (#963), a notice-only cookie bar is acknowledged, image upscale clicks through locators (#957), and `auth status` probes with the profile's own channel (#962) | ✅ done (v0.83.2) |
 | The default image model (`nano2`) runs Nano Banana 2.1 on flow.google.com — the submit guard accepts its `BELUGA` token (#958) | ✅ done (v0.83.1) |
 | Billed video runs on flow.google.com download again — the generation record is found without its `"CAE"` marker, picked by id from multi-record replies, recovered from `as29s` only (#948); image and video upscale ported to flow.google.com with MCP twins (#922) | ✅ done (v0.83.0) |

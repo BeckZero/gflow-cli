@@ -396,8 +396,8 @@ has not landed yet stay nameless until the next sync sweep.
 - **Status:** Open · **Severity:** Low (a re-run regenerates; nothing is lost) · **Affected:** every `gflow run --config` with `"ref"` rows (`batch:N` or a local file)
 - **Tracked:** [#913](https://github.com/ffroliva/gflow-cli/issues/913)
 
-A run with `"ref": "batch:N"` rows has no resume: a re-run creates a new project and
-regenerates every row, parents included, and one early failure skips the whole chain under
+A run with `"ref": "batch:N"` rows has no resume: a re-run creates a new project (or, with
+`--project`, reuses that one) and regenerates every row, parents included, and one early failure skips the whole chain under
 it. The handle that makes in-place referencing work (Flow's reply for the parent) exists
 only within the run that generated it. A local-file `ref` is uploaded again into the
 re-run's new project for the same reason.
