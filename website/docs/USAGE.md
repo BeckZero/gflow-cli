@@ -714,7 +714,9 @@ Options:
 > `r2v` from local `--ref` files (see [`gflow video r2v`](#gflow-video-r2v)). An end frame
 > or start frame given by UUID or `@Name`, and references given by `@Name` or
 > `--reference-entity`, are not ported to the migrated composer yet. `image t2i` and local-file `image i2i` also run on a moved
-> account; UUID/entity/instruction/Imagen-4 image forms still exit 36. `flow.google.com` forces the migrated composer,
+> account, and on images a character can be tagged with `@Name` or `--reference-entity`
+> (see [REFERENCE_STRATEGIES § flow.google.com](REFERENCE_STRATEGIES.md#on-flowgooglecom-images-only-723);
+> video is unchanged); UUID/instruction/Imagen-4 image forms still exit 36. `flow.google.com` forces the migrated composer,
 > `labs.google` switches it off — see [CONFIGURATION § GFLOW_CLI_FLOW_HOST](CONFIGURATION.md#gflow_cli_flow_host).
 
 ```bash
