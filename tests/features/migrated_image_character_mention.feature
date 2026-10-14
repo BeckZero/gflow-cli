@@ -19,3 +19,14 @@ Feature: An @Character mention binds the character on flow.google.com images (#7
     Given a project on flow.google.com that holds the named character
     When the MCP image tool generates "@<character> reading a potions book by the fireplace"
     Then the task completes with the image on disk
+
+  Scenario: The CLI binds the character next to an uploaded reference image
+    Given a project on flow.google.com that holds the named character
+    When the CLI generates "@<character> in the style of the reference image" with a local reference image
+    Then the command succeeds and writes the image
+    And the submit carried exactly the uploaded image and the character
+
+  Scenario: A character given only by entity id is refused before submit
+    Given a project on flow.google.com that holds the named character
+    When the CLI generates "a quiet library" with an entity id and no name
+    Then the command exits 36 naming the id-only character, with no image written

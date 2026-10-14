@@ -2429,6 +2429,16 @@ class MigratedComposer:
                     f"reference"
                 ),
             )
+        # A by-name character has no id to check, so its chip's text (the character's
+        # name, measured 2026-09-07) is what proves the picker committed the right one.
+        got_names = sorted(str(c.get("text", "")).casefold() for c in chips)
+        if got_names != sorted(n.casefold() for n in names):
+            raise ReferenceNotFoundError(
+                detail=(
+                    f"migrated host: asked for {len(names)} character(s) by name but the "
+                    "committed chips carry different names. Refusing to submit"
+                ),
+            )
         attached = {c.get("entity_id", "") for c in chips}
         missing = [e for e in entity_ids if e not in attached]
         if missing:
@@ -2451,12 +2461,15 @@ class MigratedComposer:
     async def _mention_character(self, page: Page, name: str, *, expect_chips: int) -> None:
         """Commit the picker option TITLED exactly *name* — one gesture, nothing on trial.
 
-        Measured 2026-10-13 (``scripts/dev/spike_picker_entity_marker.py``): character and
+        Measured 2026-10-13 (``scripts/dev/spike_picker_entity_marker.py``, and see
+        ``docs/superpowers/spikes/2026-10-13-migrated-image-character-mention.md``): character and
         media options are structurally identical and differ only by a translated subtitle,
         and an image captioned "Sussy cooking…" ranked above the character "Sussy". Trying
         options and deleting the media chips is NOT an option: a deleted chip leaves the
         prompt but its reference stays in the composer's request state and rides the
-        submit (live, 2026-10-13: five references on a run whose prompt showed one).
+        submit (live, 2026-10-13: five references on a run whose prompt showed one; chip
+        removal measured by ``spike_picker_chip_removal.py``, the leak reproduced by
+        ``spike_image_submit_references.py --trial-media``).
 
         ``.asset-title`` holds the asset's own name — user data, not a translated label —
         so the option whose trimmed title equals the name (case-insensitive) is the
@@ -2477,12 +2490,14 @@ class MigratedComposer:
             if titles or attempt == FRAME_SEARCH_ATTEMPTS:
                 break
             # The search had not settled: clear the typed `@name` and ask again.
-            log.info("migrated.mention_miss", name=name, attempt=attempt, offered=0)
+            log.info("migrated.mention_miss", name_chars=len(name), attempt=attempt, offered=0)
             for _ in range(len(name) + 1):
                 await page.keyboard.press("Backspace")
             await page.wait_for_timeout(FRAME_SEARCH_RETRY_PAUSE_S * 1000)
         exact = [i for i, t in enumerate(titles) if t.strip().casefold() == name.casefold()]
-        offered = ", ".join(repr(t) for t in titles[:8]) or "<nothing>"
+        # Titles are asset names, often prompt-like captions: report counts, not text,
+        # so an error detail (stderr, MCP, the catalog) never carries them.
+        offered = f"{len(titles)} option(s)"
         if len(exact) != 1:
             await page.keyboard.press("Escape")
             await page.wait_for_timeout(800)
@@ -2495,7 +2510,7 @@ class MigratedComposer:
             raise ReferenceNotFoundError(
                 detail=(
                     f"migrated host: asked for character {name!r} but {why}; the picker "
-                    f"offered: {offered}. Refusing before submit — rename the colliding "
+                    f"offered {offered}. Refusing before submit — rename the colliding "
                     "asset in Flow, or give the character a one-word name that is its full "
                     "name"
                 ),
@@ -2517,7 +2532,7 @@ class MigratedComposer:
             raise ReferenceNotFoundError(
                 detail=(
                     f"migrated host: committing the option titled {name!r} committed no chip "
-                    f"({len(chips)} chip(s), expected {expect_chips}); the picker offered: "
+                    f"({len(chips)} chip(s), expected {expect_chips}); the picker offered "
                     f"{offered}"
                 ),
             )

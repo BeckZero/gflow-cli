@@ -61,8 +61,9 @@ def _prompt(world: dict[str, Any], template: str) -> str:
     return template.replace("<character>", world["character"])
 
 
-@when(parsers.parse('the CLI generates "{template}"'))
-def _cli(world: dict[str, Any], template: str, e2e_env: dict[str, str], tmp_path: Path) -> None:
+def _run_cli(
+    world: dict[str, Any], e2e_env: dict[str, str], tmp_path: Path, mode: str, *extra: str
+) -> None:
     out = tmp_path / "cli"
     world["out"] = out
     world["proc"] = subprocess.run(  # noqa: S603 - fixed argv, our own CLI
@@ -71,8 +72,8 @@ def _cli(world: dict[str, Any], template: str, e2e_env: dict[str, str], tmp_path
             "-m",
             "gflow_cli",
             "image",
-            "t2i",
-            _prompt(world, template),
+            mode,
+            *extra,
             "--project",
             world["project"],
             "--aspect",
@@ -87,6 +88,37 @@ def _cli(world: dict[str, Any], template: str, e2e_env: dict[str, str], tmp_path
         timeout=900,
         check=False,
     )
+
+
+@when(parsers.parse('the CLI generates "{template}"'))
+def _cli(world: dict[str, Any], template: str, e2e_env: dict[str, str], tmp_path: Path) -> None:
+    _run_cli(world, e2e_env, tmp_path, "t2i", _prompt(world, template))
+
+
+@when(parsers.parse('the CLI generates "{template}" with a local reference image'))
+def _cli_i2i(world: dict[str, Any], template: str, e2e_env: dict[str, str], tmp_path: Path) -> None:
+    from PIL import Image
+
+    ref = tmp_path / "style.png"
+    Image.new("RGB", (640, 640), (40, 90, 160)).save(ref)
+    _run_cli(world, e2e_env, tmp_path, "i2i", _prompt(world, template), "--ref", str(ref))
+
+
+@when(parsers.parse('the CLI generates "{template}" with an entity id and no name'))
+def _cli_id_only(
+    world: dict[str, Any], template: str, e2e_env: dict[str, str], tmp_path: Path
+) -> None:
+    entity = "00000000-0000-4000-8000-000000000000"
+    _run_cli(world, e2e_env, tmp_path, "t2i", template, "--reference-entity", entity)
+
+
+@then("the command exits 36 naming the id-only character, with no image written")
+def _cli_refused(world: dict[str, Any]) -> None:
+    proc = world["proc"]
+    assert proc.returncode == 36, proc.stdout[-2000:] + proc.stderr[-2000:]
+    assert "entity id without a name" in proc.stdout + proc.stderr
+    out = world["out"]
+    assert not out.exists() or not [p for p in out.iterdir() if p.is_file()]
 
 
 @then("the command succeeds and writes the image")
@@ -120,6 +152,17 @@ def _cli_entity(world: dict[str, Any]) -> None:
     # one character and no media means nothing leaked into the generation (#723).
     assert guarded and guarded[-1]["outcome"] == "passed", guarded
     assert (guarded[-1]["body_media"], guarded[-1]["body_characters"]) == (0, 1), guarded
+
+
+@then("the submit carried exactly the uploaded image and the character")
+def _cli_entity_and_media(world: dict[str, Any]) -> None:
+    guarded = [
+        e
+        for e in _log_events(world["proc"].stderr)
+        if e.get("event") == "migrated.image_submit_guarded"
+    ]
+    assert guarded and guarded[-1]["outcome"] == "passed", guarded
+    assert (guarded[-1]["body_media"], guarded[-1]["body_characters"]) == (1, 1), guarded
 
 
 @when(parsers.parse('the MCP image tool generates "{template}"'))

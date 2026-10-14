@@ -332,9 +332,12 @@ class FakeEntityPage(FakeComposerPage):
         *,
         entities: dict[str, str] | None = None,
         options: list[tuple[str, str]] | None = None,
+        late_options: list[tuple[str, str]] | None = None,
         **kw: Any,
     ) -> None:
         super().__init__(**kw)
+        # The lazy list growing AFTER gflow read the titles, before it pressed Enter.
+        self.late_options = late_options
         self.keyboard = FakePickerKeyboard(self)
         self.options = options if options is not None else list((entities or {}).items())
         self.query: str | None = None
@@ -373,7 +376,10 @@ class FakeEntityPage(FakeComposerPage):
 
     async def evaluate(self, script: str, _arg: Any = None) -> Any:
         if "asset-title" in script:  # _OPTION_TITLES_JS: each option's own name
-            return [t for t, _ in self._visible()]
+            titles = [t for t, _ in self._visible()]
+            if self.late_options is not None:
+                self.options, self.late_options = self.late_options, None
+            return titles
         return self.chips
 
 
@@ -437,8 +443,24 @@ async def test_no_option_titled_the_name_is_refused_without_committing() -> None
         await MigratedComposer().attach_character_entities(
             page, entity_ids=("ent-kael",), names=("Kael",)
         )
-    assert "kael_ref.jpg" in str(exc.value)
+    # Titles are asset names, often prompt-like captions: counted, never echoed.
+    assert "kael_ref.jpg" not in str(exc.value)
+    assert "2 option(s)" in str(exc.value)
     assert page.committed == []
+
+
+async def test_a_different_character_landing_under_the_highlight_is_refused() -> None:
+    """The list can grow between reading titles and pressing Enter; a by-name character
+    has no id to check, so the chip's own name is what catches the wrong person."""
+    from gflow_cli.api.transports.migrated_composer import MigratedComposer
+
+    page = FakeEntityPage(
+        options=[("Sussy cooking", ""), ("Sussy", "ent-sussy")],
+        late_options=[("Sussy cooking", ""), ("Sussy Two", "ent-two"), ("Sussy", "ent-sussy")],
+    )
+    with pytest.raises(ReferenceNotFoundError, match="different names"):
+        await MigratedComposer().attach_character_entities(page, entity_ids=(), names=("Sussy",))
+    assert page.committed == ["Sussy Two"]
 
 
 async def test_several_options_titled_the_name_are_refused_without_committing() -> None:
