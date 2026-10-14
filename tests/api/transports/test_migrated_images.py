@@ -121,6 +121,11 @@ def test_unported_image_forms_are_named_and_refused_pre_submit() -> None:
         is None
     )
     assert _unported_image_form(_request(reference_entity_names=("Hero",))) is None
+    # The picker finds a character by name: an id with no name has nothing to type, and
+    # must be refused rather than skip the attach and drop the character (#979 review).
+    assert _unported_image_form(_request(reference_entities=("entity-1",))) == (
+        "a character given by entity id without a name"
+    )
     assert (
         _unported_image_form(_request(instructions=(AgentInstruction(text="keep it blue"),)))
         == "Agent instructions"

@@ -21,8 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is media. Nothing is committed on trial: a chip deleted from the prompt still went
   into the generation. The `ogiZ0b` submit must carry exactly the requested references
   plus the character, or it is aborted. The MCP image tool takes the same path through the
-  worker. **Video is unchanged**: character references on `video t2v`/`r2v` still exit
-  36 on that host.
+  worker. A `--reference-entity` id without a `--reference-entity-name` still exits 36
+  there (the picker finds characters by name), and on a page served labs a character
+  known only by name exits 29, since that picker attaches by id. **Video is
+  unchanged**: character references on `video t2v`/`r2v` still exit 36 on that host.
 
 ### Fixed
 

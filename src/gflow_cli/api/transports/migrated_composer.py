@@ -608,7 +608,10 @@ def _unported_image_form(request: GenerateImageRequest) -> str | None:
         # Found by its Flow caption, then matched by thumbnail; Flow returned none.
         return "a reference to an image Flow returned without a caption"
     # Character references are attached by name through the `@` picker and verified as
-    # entity chips before submit (#723), so they are not refused here.
+    # entity chips before submit (#723). An id with no name has nothing to type, and
+    # `run_images` attaches only named characters, so it is refused rather than dropped.
+    if len(request.reference_entities) > len(request.reference_entity_names):
+        return "a character given by entity id without a name"
     if request.instructions:
         return "Agent instructions"
     if request.model not in IMAGE_MODEL_MENU_MATCHERS:
@@ -2513,7 +2516,7 @@ class MigratedComposer:
         if len(chips) != expect_chips:
             raise ReferenceNotFoundError(
                 detail=(
-                    f"migrated host: clicking the option titled {name!r} committed no chip "
+                    f"migrated host: committing the option titled {name!r} committed no chip "
                     f"({len(chips)} chip(s), expected {expect_chips}); the picker offered: "
                     f"{offered}"
                 ),
